@@ -21,9 +21,22 @@ export default {
     }
     if (url.pathname === "/api/health") return json({ ok: true });
     if (url.pathname.startsWith("/api/")) return json({ error: "接口不存在" }, 404);
-    return env.ASSETS.fetch(request);
+    return serveAsset(request, env);
   },
 };
+
+// 首页由 Worker 注入 Clerk 发布密钥，线上用 pk_live_，本地开发用 .dev.vars 里的 pk_test_
+async function serveAsset(request, env) {
+  const res = await env.ASSETS.fetch(request);
+  if (!res.headers.get("content-type")?.includes("text/html")) return res;
+  return new HTMLRewriter()
+    .on("script[data-clerk-publishable-key]", {
+      element(el) {
+        el.setAttribute("data-clerk-publishable-key", env.CLERK_PUBLISHABLE_KEY);
+      },
+    })
+    .transform(res);
+}
 
 // 校验 Clerk 会话令牌（Authorization: Bearer <token>），通过则返回用户 ID
 async function authenticate(request, env, url) {

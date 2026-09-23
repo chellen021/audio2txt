@@ -74,9 +74,9 @@
     识别模型：OpenAI Whisper large-v3-turbo，由 Cloudflare Workers AI 和 Hugging Face 提供算力。
   </footer>
 
-  <!-- 发布密钥见 Clerk 控制台 API Keys 页面，可以公开 -->
+  <!-- 发布密钥由 Worker 按 CLERK_PUBLISHABLE_KEY 注入 -->
   <script src="https://cdn.jsdelivr.net/npm/@clerk/ui@1/dist/ui.browser.js" crossorigin="anonymous" defer></script>
-  <script id="clerkScript" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@6/dist/clerk.browser.js" data-clerk-publishable-key="pk_test_aW50ZXJuYWwtYnVmZmFsby01MDI1LmNsZXJrLmFjY291bnRzLmRldiQ" crossorigin="anonymous" defer></script>
+  <script id="clerkScript" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@6/dist/clerk.browser.js" data-clerk-publishable-key="" crossorigin="anonymous" defer></script>
   <script src="/app.js" type="module"></script>
 </body>
 </html>

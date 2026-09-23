@@ -76,10 +76,10 @@ hf upload <用户名>/audio2txt-whisper hf-space . --type space
 
 在 [Clerk 控制台](https://dashboard.clerk.com) 新建应用，选好登录方式（邮箱、手机号、第三方账号等）。在 API Keys 页面：
 
-- 把 **Publishable Key**（`pk_` 开头）填到 `web/public/index.html` 里 `clerkScript` 的 `data-clerk-publishable-key`
+- 把 **Publishable Key**（`pk_` 开头）填到 `web/wrangler.jsonc` 的 `CLERK_PUBLISHABLE_KEY`，Worker 返回首页时会把它注入页面
 - **Secret Key**（`sk_` 开头）下一步使用
 
-上线前在 Clerk 控制台切换到 Production 实例并绑定域名，然后换成正式环境的两个密钥。
+线上使用 Production 实例（`pk_live_` / `sk_live_`），应用域名为 `stt.chinamed.tech`。Clerk 要求的 DNS 记录在 Cloudflare 里必须设为“仅 DNS”（灰色云朵），不能开代理。Production 实例不能在 localhost 上使用，本地开发继续用 Development 实例的密钥（见“本地开发”）。
 
 ### 3. 部署 Cloudflare Worker
 
@@ -108,6 +108,7 @@ hf upload <用户名>/audio2txt-whisper hf-space . --type space     # 更新 Spa
 在 `web/` 下新建 `.dev.vars`（已被 git 忽略）：
 
 ```
+CLERK_PUBLISHABLE_KEY=pk_test_xxx
 CLERK_SECRET_KEY=sk_test_xxx
 HF_TOKEN=hf_xxx
 # 取消下一行注释可强制只走 HF 线路，用来测试备用线路
