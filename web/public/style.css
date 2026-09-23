@@ -1,0 +1,209 @@
+:root {
+  --bg: #edf0f3;
+  --surface: #ffffff;
+  --ink: #16202c;
+  --muted: #5a6573;
+  --line: #cdd4dc;
+  --accent: #1f5fd6;
+  --accent-ink: #ffffff;
+  --wave-idle: #b7c0cb;
+  --wave-active: #8fb0ee;
+  --danger: #b3261e;
+  --serif: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #10151c;
+    --surface: #18202a;
+    --ink: #e6ebf1;
+    --muted: #93a0af;
+    --line: #2a3542;
+    --accent: #6f9bff;
+    --accent-ink: #0c1220;
+    --wave-idle: #3a4656;
+    --wave-active: #34518a;
+    --danger: #ff8a80;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.7 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 16px 32px;
+}
+
+h1 {
+  font: 600 clamp(36px, 7vw, 56px)/1.15 var(--serif);
+  letter-spacing: 0.02em;
+  margin: 0 0 12px;
+}
+
+.lede {
+  color: var(--muted);
+  margin: 0 0 32px;
+  max-width: 34em;
+}
+
+/* 波形区：整页唯一的视觉重点，进度直接画在波形上 */
+.drop {
+  position: relative;
+  display: block;
+  height: 180px;
+  background: var(--surface);
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.drop:hover, .drop.over { border-color: var(--accent); }
+.drop:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+.drop.loaded { border-style: solid; }
+
+#wave {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.drop-hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  color: var(--muted);
+  padding: 0 16px;
+}
+.drop-hint strong { color: var(--accent); font-weight: 600; }
+.drop.loaded .drop-hint { display: none; }
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+#fileName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#fileInfo { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+
+.controls {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.field { display: grid; gap: 4px; font-size: 14px; color: var(--muted); }
+
+select, button {
+  font: inherit;
+  font-size: 15px;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0 14px;
+}
+select { min-width: 140px; }
+button { cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  padding: 0 24px;
+}
+button.quiet { background: transparent; }
+
+.captcha:not(:empty) { margin-top: 16px; }
+
+.status {
+  min-height: 1.7em;
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.status.error { color: var(--danger); }
+
+.result { margin-top: 32px; }
+
+.result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+h2 { font: 600 22px/1.3 var(--serif); margin: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.actions button { height: 36px; font-size: 14px; }
+
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 320px;
+  resize: vertical;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 16px/1.85 var(--sans);
+}
+
+.hint { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+
+footer {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (max-width: 520px) {
+  main { padding-top: 36px; }
+  .drop { height: 150px; }
+  .controls > * { flex: 1 1 auto; }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

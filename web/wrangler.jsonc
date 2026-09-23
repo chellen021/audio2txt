@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "audio2txt",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": false,
+  "routes": [{ "pattern": "stt.chinamed.tech", "custom_domain": true }],
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "ai": { "binding": "AI" },
+  "ratelimits": [
+    // 每个 IP 每分钟最多 30 个分段请求（约 30 分钟音频）
+    { "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 30, "period": 60 } }
+  ],
+  "vars": {
+    "HF_SPACE_URL": "https://chellen021-audio2txt-whisper.hf.space"
+  },
+  "observability": { "enabled": true }
+}
