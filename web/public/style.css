@@ -146,7 +146,16 @@ button.primary {
 }
 button.quiet { background: transparent; }
 
-.captcha:not(:empty) { margin-top: 16px; }
+main { position: relative; }
+.account {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+.account button { height: 32px; font-size: 14px; }
 
 .status {
   min-height: 1.7em;

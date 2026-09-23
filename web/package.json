@@ -1,0 +1,12 @@
+{
+  "name": "audio2txt-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@clerk/backend": "^3.18.1"
+  }
+}

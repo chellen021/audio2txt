@@ -12,7 +12,7 @@
   },
   "ai": { "binding": "AI" },
   "ratelimits": [
-    // 每个 IP 每分钟最多 30 个分段请求（约 30 分钟音频）
+    // 每个用户每分钟最多 30 个分段请求（约 30 分钟音频）
     { "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 30, "period": 60 } }
   ],
   "vars": {

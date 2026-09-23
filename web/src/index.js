@@ -1,7 +1,8 @@
+import { verifyToken } from "@clerk/backend";
+
 const AI_MODEL = "@cf/openai/whisper-large-v3-turbo";
 const MAX_CHUNK_BYTES = 8 * 1024 * 1024;
 const LANGUAGES = new Set(["", "zh", "en", "ja", "ko", "yue", "fr", "de", "es", "ru"]);
-const SESSION_TTL_SECONDS = 2 * 60 * 60;
 const PROMPTS = {
   zh: "以下是普通话的句子，使用简体中文和标点符号。",
 };
@@ -12,16 +13,11 @@ let aiExhaustedUntil = 0;
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname === "/api/session") {
-      if (request.method !== "POST") return json({ error: "只支持 POST 请求" }, 405);
-      return handleSession(request, env);
-    }
     if (url.pathname === "/api/transcribe") {
       if (request.method !== "POST") return json({ error: "只支持 POST 请求" }, 405);
-      if (!(await verifySession(request.headers.get("x-session"), env))) {
-        return json({ error: "人机验证已过期，请重新验证", code: "session_required" }, 401);
-      }
-      return handleTranscribe(request, env, url);
+      const userId = await authenticate(request, env, url);
+      if (!userId) return json({ error: "请先登录", code: "auth_required" }, 401);
+      return handleTranscribe(request, env, url, userId);
     }
     if (url.pathname === "/api/health") return json({ ok: true });
     if (url.pathname.startsWith("/api/")) return json({ error: "接口不存在" }, 404);
@@ -29,67 +25,26 @@ export default {
   },
 };
 
-// 用户通过 Turnstile 后换取一张 2 小时有效的签名通行证，之后每个分段请求只校验通行证
-async function handleSession(request, env) {
-  const { token } = await request.json().catch(() => ({}));
-  if (!token) return json({ error: "缺少人机验证结果" }, 400);
-
-  const form = new FormData();
-  form.append("secret", env.TURNSTILE_SECRET);
-  form.append("response", token);
-  const ip = request.headers.get("cf-connecting-ip");
-  if (ip) form.append("remoteip", ip);
-  const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
-  const outcome = await res.json();
-  if (!outcome.success) {
-    console.warn("Turnstile rejected", outcome["error-codes"]);
-    return json({ error: "人机验证没有通过，请刷新页面重试" }, 403);
-  }
-
-  const expires = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
-  const payload = base64url(new TextEncoder().encode(JSON.stringify({ exp: expires })));
-  return json({ session: `${payload}.${await sign(payload, env)}`, expires });
-}
-
-async function verifySession(session, env) {
-  if (!session) return false;
-  const [payload, signature] = session.split(".");
-  if (!payload || !signature) return false;
+// 校验 Clerk 会话令牌（Authorization: Bearer <token>），通过则返回用户 ID
+async function authenticate(request, env, url) {
+  const token = request.headers.get("authorization")?.match(/^Bearer (.+)$/)?.[1];
+  if (!token) return null;
   try {
-    const key = await hmacKey(env);
-    const valid = await crypto.subtle.verify("HMAC", key, fromBase64url(signature), new TextEncoder().encode(payload));
-    if (!valid) return false;
-    const { exp } = JSON.parse(new TextDecoder().decode(fromBase64url(payload)));
-    return exp > Date.now() / 1000;
-  } catch {
-    return false;
+    const payload = await verifyToken(token, {
+      secretKey: env.CLERK_SECRET_KEY,
+      jwtKey: env.CLERK_JWT_KEY,
+      authorizedParties: [url.origin],
+    });
+    return payload.sub;
+  } catch (err) {
+    console.warn("Clerk token rejected", err?.reason || err?.message);
+    return null;
   }
 }
 
-async function sign(payload, env) {
-  const signature = await crypto.subtle.sign("HMAC", await hmacKey(env), new TextEncoder().encode(payload));
-  return base64url(new Uint8Array(signature));
-}
-
-function hmacKey(env) {
-  return crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(env.SESSION_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]
-  );
-}
-
-function base64url(bytes) {
-  return toBase64(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function fromBase64url(text) {
-  const binary = atob(text.replace(/-/g, "+").replace(/_/g, "/"));
-  return Uint8Array.from(binary, (c) => c.charCodeAt(0));
-}
-
-async function handleTranscribe(request, env, url) {
-  const ip = request.headers.get("cf-connecting-ip") || "unknown";
+async function handleTranscribe(request, env, url, userId) {
   if (env.RATE_LIMITER) {
-    const { success } = await env.RATE_LIMITER.limit({ key: ip });
+    const { success } = await env.RATE_LIMITER.limit({ key: userId });
     if (!success) return json({ error: "请求太频繁，请稍等一分钟再试" }, 429);
   }
 

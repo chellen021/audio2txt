@@ -5,13 +5,13 @@ const CHUNK_SECONDS = 60;
 const SEARCH_SECONDS = 5;
 const CONCURRENCY = 2;
 const MAX_ATTEMPTS = 4;
-const TURNSTILE_SITEKEY = "0x4AAAAAAFAtXXnTIEQz1iJX";
+const CLERK_ZH_CN = "https://cdn.jsdelivr.net/npm/@clerk/localizations@4/dist/zh-CN.mjs";
 
 const $ = (id) => document.getElementById(id);
 const els = {
   drop: $("drop"), file: $("file"), wave: $("wave"), meta: $("meta"),
   fileName: $("fileName"), fileInfo: $("fileInfo"), language: $("language"),
-  start: $("start"), cancel: $("cancel"), status: $("status"), result: $("result"),
+  account: $("account"), start: $("start"), cancel: $("cancel"), status: $("status"), result: $("result"),
   text: $("text"), copy: $("copy"), dlTxt: $("dlTxt"), dlSrt: $("dlSrt"), dlVtt: $("dlVtt"),
 };
 
@@ -153,6 +153,11 @@ els.cancel.addEventListener("click", () => controller?.abort());
 
 async function run() {
   if (!audio || controller) return;
+  if (!clerk?.isSignedIn) {
+    if (!clerk) return setStatus("登录组件还没加载好，请稍候再试。", true);
+    setStatus("请先登录，登录后再点“开始转写”。");
+    return clerk.openSignIn();
+  }
   controller = new AbortController();
   const { signal } = controller;
   const language = els.language.value;
@@ -208,12 +213,14 @@ async function transcribeChunk(index, language, signal) {
   const body = encodeWav(audio.pcm.subarray(start, end));
   const url = `/api/transcribe?language=${encodeURIComponent(language)}`;
   let lastError = "转写失败";
+  let refreshToken = false;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const pass = await ensureSession(signal);
+    const token = await getToken(refreshToken);
+    refreshToken = false;
     let res;
     try {
-      res = await fetch(url, { method: "POST", body, headers: { "Content-Type": "audio/wav", "X-Session": pass }, signal });
+      res = await fetch(url, { method: "POST", body, headers: { "Content-Type": "audio/wav", Authorization: `Bearer ${token}` }, signal });
     } catch (err) {
       if (err.name === "AbortError") throw err;
       lastError = "网络连接中断";
@@ -225,7 +232,7 @@ async function transcribeChunk(index, language, signal) {
     const data = await res.json().catch(() => ({}));
     lastError = data.error || `服务器返回错误 ${res.status}`;
     if (res.status === 401) {
-      if (session?.session === pass) session = null;
+      refreshToken = true;
     } else if (res.status === 429) {
       setStatus("请求太频繁，稍等片刻后自动继续…");
       await sleep(20000, signal);
@@ -238,89 +245,53 @@ async function transcribeChunk(index, language, signal) {
   throw new Error(`第 ${index + 1} 段${lastError}`);
 }
 
-// ---------- 人机验证 ----------
+// ---------- 登录 ----------
 
-let widgetId = null;
-let turnstileToken = null;
-let turnstileError = null;
-let tokenWaiters = [];
-let session = null;          // { session, expires }，expires 为秒级时间戳
-let sessionPromise = null;
+let clerk = null;
 
-function initTurnstile() {
-  widgetId = window.turnstile.render("#captcha", {
-    sitekey: TURNSTILE_SITEKEY,
-    appearance: "interaction-only",
-    language: "zh-cn",
-    callback: (token) => {
-      turnstileToken = token;
-      turnstileError = null;
-      flushWaiters();
-    },
-    "expired-callback": () => { turnstileToken = null; },
-    "error-callback": () => {
-      turnstileError = "人机验证加载失败。请刷新页面，或暂时关闭广告拦截插件后重试";
-      flushWaiters();
-    },
-  });
+async function initClerk() {
+  if (!window.Clerk) {
+    return setStatus("登录组件加载失败。请刷新页面，或暂时关闭广告拦截插件后重试。", true);
+  }
+  const localization = await import(CLERK_ZH_CN).then((m) => m.zhCN).catch(() => undefined);
+  try {
+    await window.Clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor }, localization });
+  } catch (err) {
+    console.error(err);
+    return setStatus("登录组件加载失败。请刷新页面重试。", true);
+  }
+  clerk = window.Clerk;
+  renderAccount();
+  clerk.addListener(renderAccount);
 }
 
-if (window.turnstile) initTurnstile();
-else document.getElementById("turnstileScript").addEventListener("load", initTurnstile);
-
-function flushWaiters() {
-  const waiters = tokenWaiters;
-  tokenWaiters = [];
-  waiters.forEach((w) => w());
+// 右上角：已登录显示头像菜单，未登录显示“登录”按钮
+function renderAccount() {
+  const el = els.account;
+  const mounted = el.dataset.state === "user";
+  if (clerk.isSignedIn && !mounted) {
+    el.replaceChildren();
+    clerk.mountUserButton(el);
+    el.dataset.state = "user";
+  } else if (!clerk.isSignedIn && el.dataset.state !== "guest") {
+    if (mounted) clerk.unmountUserButton(el);
+    const button = document.createElement("button");
+    button.className = "quiet";
+    button.textContent = "登录";
+    button.addEventListener("click", () => clerk.openSignIn());
+    el.replaceChildren(button);
+    el.dataset.state = "guest";
+  }
 }
 
-// 取一个 Turnstile 结果；需要用户点选时，验证框会自动出现在按钮下方
-function takeTurnstileToken(signal) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => finish(), 120000);
-    const onAbort = () => finish();
-    signal.addEventListener("abort", onAbort, { once: true });
-    function finish() {
-      clearTimeout(timer);
-      signal.removeEventListener("abort", onAbort);
-      tokenWaiters = tokenWaiters.filter((w) => w !== finish);
-      if (signal.aborted) return reject(new DOMException("aborted", "AbortError"));
-      if (turnstileToken) {
-        const token = turnstileToken;
-        turnstileToken = null;
-        return resolve(token);
-      }
-      reject(new Error(turnstileError || "人机验证超时，请刷新页面重试"));
-    }
-    if (turnstileToken || turnstileError) return finish();
-    setStatus("正在进行人机验证…");
-    tokenWaiters.push(finish);
-  });
+// Clerk 会话令牌只有一分钟有效期，getToken 会自动缓存和续期
+async function getToken(skipCache) {
+  const token = await clerk?.session?.getToken({ skipCache });
+  if (!token) throw new Error("登录已失效，请重新登录");
+  return token;
 }
 
-async function ensureSession(signal) {
-  if (session && session.expires * 1000 - Date.now() > 60000) return session.session;
-  sessionPromise ??= (async () => {
-    try {
-      const token = await takeTurnstileToken(signal);
-      // 用掉的结果不能再用，立刻重置，为下一次换通行证做准备
-      if (widgetId !== null) window.turnstile.reset(widgetId);
-      const res = await fetch("/api/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-        signal,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `人机验证失败（${res.status}）`);
-      session = data;
-      return data.session;
-    } finally {
-      sessionPromise = null;
-    }
-  })();
-  return sessionPromise;
-}
+initClerk();
 
 function sleep(ms, signal) {
   return new Promise((resolve, reject) => {

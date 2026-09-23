@@ -7,18 +7,18 @@
 - 识别模型：OpenAI Whisper large-v3-turbo，支持普通话、粤语、英语、日语、韩语等
 - 主力线路：Cloudflare Workers AI（每日免费额度）
 - 备用线路：Hugging Face ZeroGPU Space（使用 HF PRO 账号的 GPU 额度）
-- 防滥用：Cloudflare Turnstile 人机验证，外加按 IP 限流
+- 登录与防滥用：[Clerk](https://clerk.com) 账号登录，按用户限流
 
 ## 工作原理
 
 ```
 浏览器
   │ 1. 在本地把音频解码成 16kHz 单声道，按约 60 秒切段（切点选在附近最安静处）
-  │ 2. 通过 Turnstile 验证，换取 2 小时有效的通行证
-  │ 3. 每段转成 WAV，带着通行证发给 /api/transcribe（同时 2 段）
+  │ 2. 用户通过 Clerk 登录，前端取得短期会话令牌
+  │ 3. 每段转成 WAV，带着令牌发给 /api/transcribe（同时 2 段）
   ▼
 Cloudflare Worker（stt.chinamed.tech）
-  │ · 校验通行证、按 IP 限流
+  │ · 用 @clerk/backend 校验令牌、按用户限流
   │ · 先调用 Workers AI whisper-large-v3-turbo
   │ · 失败或当日免费额度用完时，改为调用 HF Space
   ▼
@@ -34,7 +34,8 @@ Hugging Face Space（私有，ZeroGPU）
 audio2txt/
 ├── web/                     Cloudflare Worker：网站页面 + 接口
 │   ├── wrangler.jsonc       Worker 配置：域名、AI 绑定、限流、环境变量
-│   ├── src/index.js         接口：/api/session、/api/transcribe、/api/health
+│   ├── package.json         依赖：@clerk/backend
+│   ├── src/index.js         接口：/api/transcribe、/api/health
 │   └── public/              前端静态文件
 │       ├── index.html
 │       ├── style.css
@@ -50,8 +51,7 @@ audio2txt/
 
 | 路径 | 方法 | 说明 |
 |---|---|---|
-| `/api/session` | POST | 请求体 `{"token": "<Turnstile 结果>"}`，验证通过后返回 `{"session", "expires"}` |
-| `/api/transcribe?language=zh` | POST | 请求体为音频（WAV，单段不超过 8 MB），请求头 `X-Session: <通行证>`；返回 `{"provider", "text", "segments"}` |
+| `/api/transcribe?language=zh` | POST | 请求体为音频（WAV，单段不超过 8 MB），请求头 `Authorization: Bearer <Clerk 会话令牌>`；返回 `{"provider", "text", "segments"}`，未登录返回 401 |
 | `/api/health` | GET | 健康检查 |
 
 `language` 可选值：留空（自动识别）、`zh`、`yue`、`en`、`ja`、`ko`、`fr`、`de`、`es`、`ru`。选 `zh` 时会附带提示词，让输出为简体中文并带标点。
@@ -72,9 +72,14 @@ hf upload <用户名>/audio2txt-whisper hf-space . --type space
 
 构建完成后，Space 地址形如 `https://<用户名>-audio2txt-whisper.hf.space`，把它填到 `web/wrangler.jsonc` 的 `HF_SPACE_URL`。
 
-### 2. 创建 Turnstile 小组件
+### 2. 创建 Clerk 应用
 
-在 Cloudflare 控制台的 Turnstile 页面新建小组件，域名填网站域名，模式选 Managed。把 **Site Key** 填到 `web/public/app.js` 的 `TURNSTILE_SITEKEY`，**Secret Key** 下一步使用。
+在 [Clerk 控制台](https://dashboard.clerk.com) 新建应用，选好登录方式（邮箱、手机号、第三方账号等）。在 API Keys 页面：
+
+- 把 **Publishable Key**（`pk_` 开头）填到 `web/public/index.html` 里 `clerkScript` 的 `data-clerk-publishable-key`
+- **Secret Key**（`sk_` 开头）下一步使用
+
+上线前在 Clerk 控制台切换到 Production 实例并绑定域名，然后换成正式环境的两个密钥。
 
 ### 3. 部署 Cloudflare Worker
 
@@ -82,10 +87,11 @@ hf upload <用户名>/audio2txt-whisper hf-space . --type space
 
 ```bash
 cd web
+npm install
 wrangler deploy
 wrangler secret put HF_TOKEN            # HF fine-grained token，只需该 Space 的读取权限
-wrangler secret put TURNSTILE_SECRET    # Turnstile 的 Secret Key
-wrangler secret put SESSION_SECRET      # 任意长随机字符串，用于给通行证签名
+wrangler secret put CLERK_SECRET_KEY    # Clerk 的 Secret Key
+# 可选：wrangler secret put CLERK_JWT_KEY  # API Keys 页面的 JWT 公钥（PEM），设置后校验令牌不再请求 Clerk
 ```
 
 `routes` 中的 `custom_domain: true` 会让 Cloudflare 自动创建 DNS 记录和证书。
@@ -93,7 +99,7 @@ wrangler secret put SESSION_SECRET      # 任意长随机字符串，用于给�
 ### 更新
 
 ```bash
-cd web && wrangler deploy                                        # 更新网站和接口
+cd web && npm install && wrangler deploy                         # 更新网站和接口
 hf upload <用户名>/audio2txt-whisper hf-space . --type space     # 更新 Space
 ```
 
@@ -102,14 +108,13 @@ hf upload <用户名>/audio2txt-whisper hf-space . --type space     # 更新 Spa
 在 `web/` 下新建 `.dev.vars`（已被 git 忽略）：
 
 ```
-TURNSTILE_SECRET=1x0000000000000000000000000000000AA
-SESSION_SECRET=local-test-secret
+CLERK_SECRET_KEY=sk_test_xxx
 HF_TOKEN=hf_xxx
 # 取消下一行注释可强制只走 HF 线路，用来测试备用线路
 # FORCE_PROVIDER=hf
 ```
 
-然后运行 `wrangler dev`。上面的 `TURNSTILE_SECRET` 是 Cloudflare 官方的测试密钥，任何 Turnstile 结果都会通过，可以用 `XXXX.DUMMY.TOKEN.XXXX` 换取通行证。Workers AI 在本地开发时也会调用线上服务，会消耗额度。
+然后运行 `npm install && wrangler dev`。本地开发用 Clerk 的 Development 实例密钥即可，`localhost` 可以直接登录。Workers AI 在本地开发时也会调用线上服务，会消耗额度。
 
 ## 配置和限制
 
@@ -118,8 +123,7 @@ HF_TOKEN=hf_xxx
 | 上传文件大小上限 | `app.js` `MAX_FILE_BYTES` | 50 MB |
 | 每段时长 | `app.js` `CHUNK_SECONDS` | 60 秒 |
 | 同时处理的段数 | `app.js` `CONCURRENCY` | 2 |
-| 通行证有效期 | `index.js` `SESSION_TTL_SECONDS` | 2 小时 |
-| 限流 | `wrangler.jsonc` `ratelimits` | 每 IP 每分钟 30 段 |
+| 限流 | `wrangler.jsonc` `ratelimits` | 每个用户每分钟 30 段 |
 | Space 上传文件清理 | `app.py` `delete_cache` | 每小时清理超过 1 小时的文件 |
 
 注意事项：

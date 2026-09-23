@@ -13,8 +13,9 @@
 <body>
   <main>
     <header>
+      <div class="account" id="account"></div>
       <h1>音频转文字</h1>
-      <p class="lede">上传一段录音，几分钟内拿到文字稿和字幕文件。免费使用，音频只用于本次转写。</p>
+      <p class="lede">上传一段录音，几分钟内拿到文字稿和字幕文件。登录后免费使用，音频只用于本次转写。</p>
     </header>
 
     <section class="tape" aria-label="音频">
@@ -52,8 +53,6 @@
       <button id="cancel" class="quiet" hidden>停止</button>
     </section>
 
-    <div id="captcha" class="captcha"></div>
-
     <p class="status" id="status" role="status" aria-live="polite"></p>
 
     <section class="result" id="result" hidden>
@@ -75,7 +74,9 @@
     识别模型：OpenAI Whisper large-v3-turbo，由 Cloudflare Workers AI 和 Hugging Face 提供算力。
   </footer>
 
-  <script id="turnstileScript" src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+  <!-- 发布密钥见 Clerk 控制台 API Keys 页面，可以公开 -->
+  <script src="https://cdn.jsdelivr.net/npm/@clerk/ui@1/dist/ui.browser.js" crossorigin="anonymous" defer></script>
+  <script id="clerkScript" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@6/dist/clerk.browser.js" data-clerk-publishable-key="pk_test_aW50ZXJuYWwtYnVmZmFsby01MDI1LmNsZXJrLmFjY291bnRzLmRldiQ" crossorigin="anonymous" defer></script>
   <script src="/app.js" type="module"></script>
 </body>
 </html>
