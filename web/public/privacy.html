@@ -22,7 +22,7 @@
 
     <h2>我们收集哪些数据</h2>
     <ul>
-      <li><strong>账号信息。</strong>登录由第三方服务 Clerk 提供。使用邮箱验证码登录时，Clerk 保存你的邮箱地址；使用 Google 登录时，Clerk 从 Google 获取你的邮箱地址、姓名和头像。</li>
+      <li><strong>账号信息。</strong>登录由第三方服务 Clerk 提供。使用邮箱验证码登录时，Clerk 保存你的邮箱地址；使用 Google 登录时，Clerk 从 Google 获取你的邮箱地址、姓名和头像；使用 GitHub 登录时，Clerk 从 GitHub 获取你的邮箱地址、用户名、姓名和头像。GitHub 登录只读取账号资料，不访问你的代码仓库。</li>
       <li><strong>音频。</strong>音频在你的浏览器里解码并切成约 60 秒的片段，逐段发送给转写服务。本站不保存音频。</li>
       <li><strong>转写结果。</strong>文字稿只保存在你的浏览器页面里，本站服务器不保存。</li>
       <li><strong>技术日志。</strong>托管平台 Cloudflare 会记录请求时间、状态码等运行日志，用于排查故障，不包含音频和文字内容。</li>
@@ -40,6 +40,7 @@
     <h2>数据由谁处理</h2>
     <ul>
       <li><strong>Clerk</strong>：账号与登录，保存账号信息。</li>
+      <li><strong>Google、GitHub</strong>：你选择用它们登录时，负责验证你的身份。</li>
       <li><strong>Cloudflare</strong>：网站托管；音频片段交给 Cloudflare Workers AI 转写。</li>
       <li><strong>Hugging Face</strong>：Workers AI 不可用时的备用转写服务。上传的音频片段会在两小时内自动删除。</li>
     </ul>
@@ -48,7 +49,7 @@
     <p>Clerk 使用 Cookie 维持你的登录状态。本站不使用广告或跟踪类 Cookie。</p>
 
     <h2>保存期限与删除</h2>
-    <p>账号信息在你的账号存续期间保存。如需删除账号及相关数据，请通过下方联系方式提出，我们会删除你在 Clerk 中的账号。你也可以随时在 Google 账号的“第三方应用和服务”页面撤销本站的访问权限。</p>
+    <p>账号信息在你的账号存续期间保存。如需删除账号及相关数据，请通过下方联系方式提出，我们会删除你在 Clerk 中的账号。你也可以随时在 Google 账号的“第三方应用和服务”页面，或 GitHub 的 Settings → Applications → Authorized OAuth Apps 页面，撤销本站的访问权限。</p>
 
     <h2>联系我们</h2>
     <p>本站源代码公开。关于隐私的任何问题或删除请求，请在 <a href="https://github.com/chellen021/audio2txt/issues">GitHub issues</a> 提出。</p>
@@ -64,7 +65,7 @@
 
       <h2>Data we collect</h2>
       <ul>
-        <li><strong>Account information.</strong> Sign-in is provided by the third-party service Clerk. With email-code sign-in, Clerk stores your email address. With Google sign-in, Clerk receives your email address, name and profile picture from Google.</li>
+        <li><strong>Account information.</strong> Sign-in is provided by the third-party service Clerk. With email-code sign-in, Clerk stores your email address. With Google sign-in, Clerk receives your email address, name and profile picture from Google. With GitHub sign-in, Clerk receives your email address, username, name and avatar from GitHub; GitHub sign-in reads only your profile and never accesses your repositories.</li>
         <li><strong>Audio.</strong> Audio is decoded in your browser, split into segments of about 60 seconds, and sent segment by segment to a transcription service. The site does not store audio.</li>
         <li><strong>Transcripts.</strong> Transcripts stay in your browser tab. The site’s servers do not store them.</li>
         <li><strong>Technical logs.</strong> Our hosting provider Cloudflare records operational logs such as request times and status codes for troubleshooting. They do not contain audio or transcript content.</li>
@@ -82,6 +83,7 @@
       <h2>Who processes data</h2>
       <ul>
         <li><strong>Clerk</strong>: accounts and sign-in; stores account information.</li>
+        <li><strong>Google and GitHub</strong>: verify your identity when you choose to sign in with them.</li>
         <li><strong>Cloudflare</strong>: hosts the site; audio segments are transcribed by Cloudflare Workers AI.</li>
         <li><strong>Hugging Face</strong>: backup transcription when Workers AI is unavailable. Uploaded audio segments are deleted automatically within two hours.</li>
       </ul>
@@ -90,7 +92,7 @@
       <p>Clerk uses cookies to keep you signed in. The site does not use advertising or tracking cookies.</p>
 
       <h2>Retention and deletion</h2>
-      <p>Account information is kept while your account exists. To delete your account and related data, contact us as described below and we will delete your Clerk account. You can also revoke the site’s access at any time on the “Third-party apps &amp; services” page of your Google Account.</p>
+      <p>Account information is kept while your account exists. To delete your account and related data, contact us as described below and we will delete your Clerk account. You can also revoke the site’s access at any time on the “Third-party apps &amp; services” page of your Google Account, or under Settings → Applications → Authorized OAuth Apps on GitHub.</p>
 
       <h2>Contact</h2>
       <p>The site’s source code is public. For any privacy question or deletion request, please open an issue on <a href="https://github.com/chellen021/audio2txt/issues">GitHub</a>.</p>
