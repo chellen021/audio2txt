@@ -18,7 +18,7 @@
   "vars": {
     "HF_SPACE_URL": "https://chellen021-audio2txt-whisper.hf.space",
     // Clerk 发布密钥（可以公开），由 Worker 注入页面；本地开发在 .dev.vars 里覆盖成 pk_test_
-    "CLERK_PUBLISHABLE_KEY": "pk_test_aW50ZXJuYWwtYnVmZmFsby01MDI1LmNsZXJrLmFjY291bnRzLmRldiQ"
+    "CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsuY2hpbmFtZWQudGVjaCQ"
   },
   "observability": { "enabled": true }
 }

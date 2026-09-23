@@ -79,7 +79,7 @@ hf upload <用户名>/audio2txt-whisper hf-space . --type space
 - 把 **Publishable Key**（`pk_` 开头）填到 `web/wrangler.jsonc` 的 `CLERK_PUBLISHABLE_KEY`，Worker 返回首页时会把它注入页面
 - **Secret Key**（`sk_` 开头）下一步使用
 
-线上使用 Production 实例（`pk_live_` / `sk_live_`），应用域名为 `stt.chinamed.tech`。Clerk 要求的 DNS 记录在 Cloudflare 里必须设为“仅 DNS”（灰色云朵），不能开代理。Production 实例不能在 localhost 上使用，本地开发继续用 Development 实例的密钥（见“本地开发”）。
+线上使用 Production 实例（`pk_live_` / `sk_live_`），Clerk 应用域名为根域名 `chinamed.tech`（前端接口在 `clerk.chinamed.tech`），登录状态在 chinamed.tech 的各个子域名之间共享。Clerk 要求的 DNS 记录在 Cloudflare 里必须设为“仅 DNS”（灰色云朵），不能开代理。Production 实例不能在 localhost 上使用，本地开发继续用 Development 实例的密钥（见“本地开发”）。
 
 ### 3. 部署 Cloudflare Worker
 
