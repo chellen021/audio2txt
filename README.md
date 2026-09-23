@@ -38,6 +38,7 @@ audio2txt/
 │   ├── src/index.js         接口：/api/transcribe、/api/health
 │   └── public/              前端静态文件
 │       ├── index.html
+│       ├── privacy.html     隐私政策（Google 品牌验证需要）
 │       ├── style.css
 │       └── app.js           解码、切段、上传、波形进度、导出字幕
 └── hf-space/                Hugging Face Space：备用转写后端

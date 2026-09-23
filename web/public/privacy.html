@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>隐私政策 · 音频转文字</title>
+  <meta name="description" content="音频转文字（stt.chinamed.tech）的隐私政策：收集哪些数据、如何使用 Google 用户数据、音频如何处理。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="policy">
+    <p class="back"><a href="/">← 返回音频转文字</a></p>
+
+    <h1>隐私政策</h1>
+    <p class="lede">生效日期：2026 年 9 月 23 日。本政策适用于“音频转文字”网站 https://stt.chinamed.tech（以下简称“本站”）。</p>
+
+    <h2>本站做什么</h2>
+    <p>本站把用户上传的录音转写成文字，并提供 TXT 文本和 SRT、VTT 字幕下载。使用转写功能需要先登录。</p>
+
+    <h2>我们收集哪些数据</h2>
+    <ul>
+      <li><strong>账号信息。</strong>登录由第三方服务 Clerk 提供。使用邮箱验证码登录时，Clerk 保存你的邮箱地址；使用 Google 登录时，Clerk 从 Google 获取你的邮箱地址、姓名和头像。</li>
+      <li><strong>音频。</strong>音频在你的浏览器里解码并切成约 60 秒的片段，逐段发送给转写服务。本站不保存音频。</li>
+      <li><strong>转写结果。</strong>文字稿只保存在你的浏览器页面里，本站服务器不保存。</li>
+      <li><strong>技术日志。</strong>托管平台 Cloudflare 会记录请求时间、状态码等运行日志，用于排查故障，不包含音频和文字内容。</li>
+    </ul>
+
+    <h2>我们如何使用 Google 用户数据</h2>
+    <p>通过 Google 登录时，本站只申请最基本的权限：你的邮箱地址和基本资料（姓名、头像）。这些信息只用于：</p>
+    <ul>
+      <li>创建和识别你的账号，让你登录本站；</li>
+      <li>在页面右上角的账户菜单里显示你的姓名和头像；</li>
+      <li>按账号限制请求频率，防止滥用。</li>
+    </ul>
+    <p>本站不会出售 Google 用户数据，不会用于广告，也不会转让给除下文所列服务商以外的任何人。本站对 Google API 所获信息的使用遵守 <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>，包括其中的有限使用（Limited Use）要求。</p>
+
+    <h2>数据由谁处理</h2>
+    <ul>
+      <li><strong>Clerk</strong>：账号与登录，保存账号信息。</li>
+      <li><strong>Cloudflare</strong>：网站托管；音频片段交给 Cloudflare Workers AI 转写。</li>
+      <li><strong>Hugging Face</strong>：Workers AI 不可用时的备用转写服务。上传的音频片段会在两小时内自动删除。</li>
+    </ul>
+
+    <h2>Cookie</h2>
+    <p>Clerk 使用 Cookie 维持你的登录状态。本站不使用广告或跟踪类 Cookie。</p>
+
+    <h2>保存期限与删除</h2>
+    <p>账号信息在你的账号存续期间保存。如需删除账号及相关数据，请通过下方联系方式提出，我们会删除你在 Clerk 中的账号。你也可以随时在 Google 账号的“第三方应用和服务”页面撤销本站的访问权限。</p>
+
+    <h2>联系我们</h2>
+    <p>本站源代码公开。关于隐私的任何问题或删除请求，请在 <a href="https://github.com/chellen021/audio2txt/issues">GitHub issues</a> 提出。</p>
+
+    <hr>
+
+    <h1 lang="en">Privacy Policy</h1>
+    <div lang="en">
+      <p class="lede">Effective date: September 23, 2026. This policy applies to the 音频转文字 (Audio to Text) website at https://stt.chinamed.tech (“the site”).</p>
+
+      <h2>What the site does</h2>
+      <p>The site transcribes audio recordings that users upload into text and offers the result as a TXT transcript and SRT or VTT subtitles. Signing in is required to transcribe.</p>
+
+      <h2>Data we collect</h2>
+      <ul>
+        <li><strong>Account information.</strong> Sign-in is provided by the third-party service Clerk. With email-code sign-in, Clerk stores your email address. With Google sign-in, Clerk receives your email address, name and profile picture from Google.</li>
+        <li><strong>Audio.</strong> Audio is decoded in your browser, split into segments of about 60 seconds, and sent segment by segment to a transcription service. The site does not store audio.</li>
+        <li><strong>Transcripts.</strong> Transcripts stay in your browser tab. The site’s servers do not store them.</li>
+        <li><strong>Technical logs.</strong> Our hosting provider Cloudflare records operational logs such as request times and status codes for troubleshooting. They do not contain audio or transcript content.</li>
+      </ul>
+
+      <h2>How we use Google user data</h2>
+      <p>Google sign-in requests only the basic scopes: your email address and basic profile (name and profile picture). We use this information only to:</p>
+      <ul>
+        <li>create and identify your account so you can sign in;</li>
+        <li>show your name and picture in the account menu in the top-right corner;</li>
+        <li>apply per-account rate limits to prevent abuse.</li>
+      </ul>
+      <p>We do not sell Google user data, do not use it for advertising, and do not transfer it to anyone other than the service providers listed below. The site’s use of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+
+      <h2>Who processes data</h2>
+      <ul>
+        <li><strong>Clerk</strong>: accounts and sign-in; stores account information.</li>
+        <li><strong>Cloudflare</strong>: hosts the site; audio segments are transcribed by Cloudflare Workers AI.</li>
+        <li><strong>Hugging Face</strong>: backup transcription when Workers AI is unavailable. Uploaded audio segments are deleted automatically within two hours.</li>
+      </ul>
+
+      <h2>Cookies</h2>
+      <p>Clerk uses cookies to keep you signed in. The site does not use advertising or tracking cookies.</p>
+
+      <h2>Retention and deletion</h2>
+      <p>Account information is kept while your account exists. To delete your account and related data, contact us as described below and we will delete your Clerk account. You can also revoke the site’s access at any time on the “Third-party apps &amp; services” page of your Google Account.</p>
+
+      <h2>Contact</h2>
+      <p>The site’s source code is public. For any privacy question or deletion request, please open an issue on <a href="https://github.com/chellen021/audio2txt/issues">GitHub</a>.</p>
+    </div>
+  </main>
+</body>
+</html>

@@ -202,6 +202,18 @@ footer {
   color: var(--muted);
 }
 
+footer a, .policy a { color: var(--accent); }
+footer a { margin-left: 0.5em; white-space: nowrap; }
+
+/* 隐私政策页 */
+.policy { max-width: 680px; }
+.policy .back { margin: 0 0 32px; font-size: 14px; }
+.policy h2 { margin: 32px 0 8px; font-size: 20px; }
+.policy p, .policy li { color: var(--ink); }
+.policy ul { padding-left: 1.3em; }
+.policy li + li { margin-top: 6px; }
+.policy hr { border: 0; border-top: 1px solid var(--line); margin: 56px 0 40px; }
+
 @media (max-width: 520px) {
   main { padding-top: 36px; }
   .drop { height: 150px; }
