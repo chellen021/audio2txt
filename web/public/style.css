@@ -155,7 +155,7 @@ main { position: relative; }
   align-items: center;
   min-height: 32px;
 }
-.account button { height: 32px; font-size: 14px; }
+.account .quiet { height: 32px; font-size: 14px; }
 
 .status {
   min-height: 1.7em;

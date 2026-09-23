@@ -270,11 +270,13 @@ function renderAccount() {
   const el = els.account;
   const mounted = el.dataset.state === "user";
   if (clerk.isSignedIn && !mounted) {
-    el.replaceChildren();
-    clerk.mountUserButton(el);
+    // Clerk 会把挂载节点的 class 换成自己的，所以挂在子元素上，保留 #account 的定位样式
+    const slot = document.createElement("div");
+    el.replaceChildren(slot);
+    clerk.mountUserButton(slot);
     el.dataset.state = "user";
   } else if (!clerk.isSignedIn && el.dataset.state !== "guest") {
-    if (mounted) clerk.unmountUserButton(el);
+    if (mounted) clerk.unmountUserButton(el.firstElementChild);
     const button = document.createElement("button");
     button.className = "quiet";
     button.textContent = "登录";
